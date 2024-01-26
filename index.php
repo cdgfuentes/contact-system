@@ -1,5 +1,4 @@
 <?php
-    // Redirect to login.php
-    header("Location: login.php");
-    exit();
-?>
+require_once __DIR__ . '/includes/bootstrap.php';
+
+redirect(isset($_SESSION['user_id']) ? 'contacts.php' : 'login.php');

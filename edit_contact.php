@@ -1,55 +1,29 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+$userId = require_login();
+$username = current_username($userId);
+$contactId = $_GET['id'] ?? '';
+
+$stmt = db()->prepare('SELECT * FROM contacts WHERE contact_id = ?');
+$stmt->execute([$contactId]);
+$contact = $stmt->fetch();
+
+if (!$contact) {
+    echo "Contact not found.";
     exit();
 }
 
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
+$name = $contact['name'];
+$company = $contact['company'];
+$phone = $contact['phone_number'];
+$email = $contact['email'];
 
-// Initialize variables for contact details
-$contactId = $_GET['id']; // Get id from param (url)
-$name = $company = $phone = $email = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ?');
+    $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId]);
 
-try {    
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $stmt = $pdo->prepare("SELECT * FROM contacts WHERE contact_id = ?");
-    $stmt->execute([$contactId]);
-    $contact = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($contact) {
-        $name = $contact['name'];
-        $company = $contact['company'];
-        $phone = $contact['phone_number'];
-        $email = $contact['email'];
-    } else {
-        echo "Contact not found.";
-        exit();
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $name = $_POST['name'];
-        $company = $_POST['company'];
-        $phone = $_POST['phone'];
-        $email = $_POST['email'];
-
-        $stmt = $pdo->prepare("UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ?");
-        $stmt->execute([$name, $company, $phone, $email, $contactId]);
-
-        header("Location: contacts.php");
-        exit();        
-    }
-} catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
-} finally {    
-    $pdo = null;
+    redirect('contacts.php');
 }
 ?>
 
@@ -129,14 +103,6 @@ try {
 
             <button type="submit">Submit</button>
         </form>
-
-        <?php
-        if (isset($updated) && $updated) {
-            echo '<p>Contact successfully updated!</p>';
-        } elseif (isset($updated) && !$updated) {
-            echo '<p>Failed to update contact. Please try again.</p>';
-        }
-        ?>
     </div>
 </body>
 </html>

@@ -1,44 +1,14 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+$userId = require_login();
+$username = current_username($userId);
 
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = db()->prepare('INSERT INTO contacts (user_id, name, company, phone_number, email) VALUES (?, ?, ?, ?, ?)');
+    $stmt->execute([$userId, $_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email']]);
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $stmt = $pdo->prepare("SELECT username FROM users WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    $username = ($user) ? $user['username'] : "Unknown User";
-
-    // Check if the form is submitted
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-        $name = $_POST['name'];
-        $company = $_POST['company'];
-        $phone = $_POST['phone'];
-        $email = $_POST['email'];
-
-        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, name, company, phone_number, email) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$_SESSION['user_id'], $name, $company, $phone, $email]);
-    
-        $inserted = true;
-    }
-} catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
-} finally {
-    $pdo = null;
+    redirect('contacts.php');
 }
 ?>
 <!DOCTYPE html>
@@ -116,15 +86,6 @@ try {
 
             <button type="submit">Submit</button>
         </form>
-
-        <?php
-        if (isset($inserted) && $inserted) {
-            header("Location: contacts.php");
-            echo '<p>Contact successfully added!</p>';
-        } elseif (isset($inserted) && !$inserted) {
-            echo '<p>Failed to add contact. Please try again.</p>';
-        }
-        ?>
     </div>
 </body>
 </html>

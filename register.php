@@ -1,38 +1,23 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'];
+    $email = $_POST['email'];
 
-        // Check if username or email already exists
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-        $stmt->execute([$username, $email]);
-        $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Check if username or email already exists
+    $stmt = db()->prepare('SELECT 1 FROM users WHERE username = ? OR email = ?');
+    $stmt->execute([$username, $email]);
 
-        if ($existingUser) {
-            echo "<p class='error'>Username or email already exists. Please choose a different one.</p>";
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $email, $password]);
-            $_SESSION['user_id'] = $pdo->lastInsertId();
+    if ($stmt->fetch()) {
+        echo "<p class='error'>Username or email already exists. Please choose a different one.</p>";
+    } else {
+        $stmt = db()->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
+        $stmt->execute([$username, $email, password_hash($_POST['password'], PASSWORD_BCRYPT)]);
+        $_SESSION['user_id'] = db()->lastInsertId();
 
-            header("Location: thank_you.php");
-            exit();
-        }
+        redirect('thank_you.php');
     }
-} catch (PDOException $e) {
-    die("Error: " . $e->getMessage());
-} finally {
-    // Close the connection
-    $pdo = null;
 }
 ?>
 

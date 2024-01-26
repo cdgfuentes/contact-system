@@ -1,41 +1,12 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+$userId = require_login();
+$username = current_username($userId);
 
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-
-    // Fetch username based on user ID
-    $stmt = $pdo->prepare("SELECT username FROM users WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Check if user was found
-    if ($user) {
-        $username = $user['username'];
-    } else {
-        $username = "Unknown User";
-    }
-
-    // Get contacts associated with the logged-in user
-    $stmt = $pdo->prepare("SELECT * FROM contacts WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-    die("Error: " . $e->getMessage());
-} finally {
-    $pdo = null;
-}
+$stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ?');
+$stmt->execute([$userId]);
+$contacts = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
