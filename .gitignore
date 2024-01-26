@@ -1,0 +1,20 @@
+# local config / secrets
+.env
+config.local.php
+
+# composer
+/vendor
+
+# IDEs and editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.sublime-workspace
+
+# logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
