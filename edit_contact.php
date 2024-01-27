@@ -3,15 +3,15 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $userId = require_login();
 $username = current_username($userId);
-$contactId = $_GET['id'] ?? '';
+$contactId = (int) ($_GET['id'] ?? 0);
 
-$stmt = db()->prepare('SELECT * FROM contacts WHERE contact_id = ?');
-$stmt->execute([$contactId]);
+// only the owner can open/edit a contact
+$stmt = db()->prepare('SELECT * FROM contacts WHERE contact_id = ? AND user_id = ?');
+$stmt->execute([$contactId, $userId]);
 $contact = $stmt->fetch();
 
 if (!$contact) {
-    echo "Contact not found.";
-    exit();
+    redirect('contacts.php');
 }
 
 $name = $contact['name'];
@@ -20,8 +20,8 @@ $phone = $contact['phone_number'];
 $email = $contact['email'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ?');
-    $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId]);
+    $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
+    $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId, $userId]);
 
     redirect('contacts.php');
 }
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container">
         <h2>Edit Contact</h2>
-        <form action="<?php echo e($_SERVER['PHP_SELF'] . "?id=$contactId"); ?>" method="post">
+        <form action="<?php echo 'edit_contact.php?id=' . $contactId; ?>" method="post">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" value="<?php echo e($name); ?>" required>
 
