@@ -34,7 +34,7 @@ $contacts = $stmt->fetchAll();
         <?php
         if (isset($_SESSION['user_id'])) {
             echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . $username . '!</a>';
+            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
             echo '<div>';
             echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
             echo '<a href="contacts.php" class="contacts">Contacts</a>';
@@ -62,13 +62,13 @@ $contacts = $stmt->fetchAll();
                 <?php
                 foreach ($contacts as $contact) {
                     echo '<tr class="action-row">';
-                    echo '<td>' . $contact['name'] . '</td>';
-                    echo '<td>' . $contact['company'] . '</td>';
-                    echo '<td>' . $contact['phone_number'] . '</td>';
-                    echo '<td>' . $contact['email'] . '</td>';
+                    echo '<td>' . e($contact['name']) . '</td>';
+                    echo '<td>' . e($contact['company']) . '</td>';
+                    echo '<td>' . e($contact['phone_number']) . '</td>';
+                    echo '<td>' . e($contact['email']) . '</td>';
                     echo '<td>';
-                    echo '<a href="edit_contact.php?id=' . $contact['contact_id'] . '" class="edit-action">Edit</a>';
-                    echo '<a href="delete_contact.php?id=' . $contact['contact_id'] . '" class="delete-action">Delete</a>';
+                    echo '<a href="edit_contact.php?id=' . (int) $contact['contact_id'] . '" class="edit-action">Edit</a>';
+                    echo '<a href="delete_contact.php?id=' . (int) $contact['contact_id'] . '" class="delete-action">Delete</a>';
                     echo '</td>';
                     echo '</tr>';
                 }

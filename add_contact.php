@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php
         if (isset($_SESSION['user_id'])) {
             echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . $username . '!</a>';
+            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
             echo '<div>';
             echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
             echo '<a href="contacts.php" class="contacts">Contacts</a>';

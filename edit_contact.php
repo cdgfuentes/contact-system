@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php
         if (isset($_SESSION['user_id'])) {
             echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . $username . '!</a>';
+            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
             echo '<div>';
             echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
             echo '<a href="contacts.php" class="contacts">Contacts</a>';
@@ -88,18 +88,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container">
         <h2>Edit Contact</h2>
-        <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'] . "?id=$contactId"); ?>" method="post">
+        <form action="<?php echo e($_SERVER['PHP_SELF'] . "?id=$contactId"); ?>" method="post">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
+            <input type="text" id="name" name="name" value="<?php echo e($name); ?>" required>
 
             <label for="company">Company:</label>
-            <input type="text" id="company" name="company" value="<?php echo htmlspecialchars($company); ?>" required>
+            <input type="text" id="company" name="company" value="<?php echo e($company); ?>" required>
 
             <label for="phone">Phone:</label>
-            <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required>
+            <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" required>
 
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+            <input type="email" id="email" name="email" value="<?php echo e($email); ?>" required>
 
             <button type="submit">Submit</button>
         </form>
