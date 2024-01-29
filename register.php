@@ -1,20 +1,42 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
+$errors = [];
+$username = '';
+$email = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $email = $_POST['email'];
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    // Check if username or email already exists
-    $stmt = db()->prepare('SELECT 1 FROM users WHERE username = ? OR email = ?');
-    $stmt->execute([$username, $email]);
+    if ($username === '' || strlen($username) > 50) {
+        $errors[] = 'Username is required (max 50 characters).';
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Please enter a valid email address.';
+    }
+    if (strlen($password) < 8) {
+        $errors[] = 'Password must be at least 8 characters.';
+    }
+    if ($password !== ($_POST['confirm_password'] ?? '')) {
+        $errors[] = 'Passwords do not match.';
+    }
 
-    if ($stmt->fetch()) {
-        echo "<p class='error'>Username or email already exists. Please choose a different one.</p>";
-    } else {
+    if (!$errors) {
+        // Check if username or email already exists
+        $stmt = db()->prepare('SELECT 1 FROM users WHERE username = ? OR email = ?');
+        $stmt->execute([$username, $email]);
+
+        if ($stmt->fetch()) {
+            $errors[] = 'Username or email already exists. Please choose a different one.';
+        }
+    }
+
+    if (!$errors) {
         $stmt = db()->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
-        $stmt->execute([$username, $email, password_hash($_POST['password'], PASSWORD_BCRYPT)]);
-        $_SESSION['user_id'] = db()->lastInsertId();
+        $stmt->execute([$username, $email, password_hash($password, PASSWORD_BCRYPT)]);
+        $_SESSION['user_id'] = (int) db()->lastInsertId();
 
         redirect('thank_you.php');
     }
@@ -32,41 +54,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <form action="register.php" method="post">
         <h2>User Registration</h2>
+
+        <?php foreach ($errors as $error): ?>
+            <p class="error"><?= e($error) ?></p>
+        <?php endforeach; ?>
+
         <label for="username">Username:</label>
-        <input type="text" name="username" required>
+        <input type="text" id="username" name="username" maxlength="50" value="<?= e($username) ?>" required>
 
         <label for="email">Email:</label>
-        <input type="email" name="email" required>
+        <input type="email" id="email" name="email" maxlength="100" value="<?= e($email) ?>" required>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+        <input type="password" id="password" name="password" minlength="8" required>
 
         <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" id="confirmPassword" required>
+        <input type="password" id="confirmPassword" name="confirm_password" minlength="8" required>
 
         <input type="submit" value="Register">
+        <a class="register-button" href="login.php">Back to login</a>
     </form>
-</body>
-</html>
 
-<script>
+    <script>
         document.addEventListener("DOMContentLoaded", function () {
             var password = document.getElementById("password");
             var confirmPassword = document.getElementById("confirmPassword");
-            var submitButton = document.getElementById("submitButton");
 
-            confirmPassword.addEventListener("input", function () {
-                if (password.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity("Passwords do not match");
-                } else {
-                    confirmPassword.setCustomValidity("");
-                }
-            });
+            function check() {
+                confirmPassword.setCustomValidity(
+                    password.value === confirmPassword.value ? "" : "Passwords do not match"
+                );
+            }
 
-            submitButton.addEventListener("click", function () {
-                if (password.value !== confirmPassword.value) {
-                    alert("Passwords do not match");
-                }
-            });
+            password.addEventListener("input", check);
+            confirmPassword.addEventListener("input", check);
         });
     </script>
+</body>
+</html>
