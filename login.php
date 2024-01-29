@@ -1,25 +1,14 @@
 <?php
-session_start();
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
+require_once __DIR__ . '/includes/bootstrap.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {        
-    $email = $_POST['email'];
-    $user_password = $_POST['password'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = db()->prepare('SELECT * FROM users WHERE email = ?');
+    $stmt->execute([$_POST['email']]);
+    $user = $stmt->fetch();
 
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user && password_verify($user_password, $user['password'])) {
+    if ($user && password_verify($_POST['password'], $user['password'])) {
         $_SESSION['user_id'] = $user['user_id'];
-        header("Location: contacts.php"); // Redirect to a contacts.php
-        exit();
+        redirect('contacts.php');
     } else {
         echo "Invalid username or password.";
     }

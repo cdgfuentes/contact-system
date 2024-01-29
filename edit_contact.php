@@ -1,55 +1,29 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+$userId = require_login();
+$username = current_username($userId);
+$contactId = (int) ($_GET['id'] ?? 0);
+
+// only the owner can open/edit a contact
+$stmt = db()->prepare('SELECT * FROM contacts WHERE contact_id = ? AND user_id = ?');
+$stmt->execute([$contactId, $userId]);
+$contact = $stmt->fetch();
+
+if (!$contact) {
+    redirect('contacts.php');
 }
 
-$host = 'localhost';
-$dbname = 'contact_system';
-$username = 'root';
-$password = '';
+$name = $contact['name'];
+$company = $contact['company'];
+$phone = $contact['phone_number'];
+$email = $contact['email'];
 
-// Initialize variables for contact details
-$contactId = $_GET['id']; // Get id from param (url)
-$name = $company = $phone = $email = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
+    $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId, $userId]);
 
-try {    
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $stmt = $pdo->prepare("SELECT * FROM contacts WHERE contact_id = ?");
-    $stmt->execute([$contactId]);
-    $contact = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($contact) {
-        $name = $contact['name'];
-        $company = $contact['company'];
-        $phone = $contact['phone_number'];
-        $email = $contact['email'];
-    } else {
-        echo "Contact not found.";
-        exit();
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $name = $_POST['name'];
-        $company = $_POST['company'];
-        $phone = $_POST['phone'];
-        $email = $_POST['email'];
-
-        $stmt = $pdo->prepare("UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ?");
-        $stmt->execute([$name, $company, $phone, $email, $contactId]);
-
-        header("Location: contacts.php");
-        exit();        
-    }
-} catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
-} finally {    
-    $pdo = null;
+    redirect('contacts.php');
 }
 ?>
 
@@ -99,7 +73,7 @@ try {
         <?php
         if (isset($_SESSION['user_id'])) {
             echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . $username . '!</a>';
+            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
             echo '<div>';
             echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
             echo '<a href="contacts.php" class="contacts">Contacts</a>';
@@ -114,29 +88,21 @@ try {
 
     <div class="container">
         <h2>Edit Contact</h2>
-        <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'] . "?id=$contactId"); ?>" method="post">
+        <form action="<?php echo 'edit_contact.php?id=' . $contactId; ?>" method="post">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
+            <input type="text" id="name" name="name" value="<?php echo e($name); ?>" required>
 
             <label for="company">Company:</label>
-            <input type="text" id="company" name="company" value="<?php echo htmlspecialchars($company); ?>" required>
+            <input type="text" id="company" name="company" value="<?php echo e($company); ?>" required>
 
             <label for="phone">Phone:</label>
-            <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required>
+            <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" required>
 
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+            <input type="email" id="email" name="email" value="<?php echo e($email); ?>" required>
 
             <button type="submit">Submit</button>
         </form>
-
-        <?php
-        if (isset($updated) && $updated) {
-            echo '<p>Contact successfully updated!</p>';
-        } elseif (isset($updated) && !$updated) {
-            echo '<p>Failed to update contact. Please try again.</p>';
-        }
-        ?>
     </div>
 </body>
 </html>
