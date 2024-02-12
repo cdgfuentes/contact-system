@@ -79,3 +79,12 @@ th {
     border-radius: 5px;
     cursor: pointer;
 }
+nav .logged-user {
+    color: #000;
+}
+nav a {
+    color: #3498db;
+}
+nav a.active {
+    color: #000;
+}

@@ -35,16 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Contact</title>
     <link rel="stylesheet" href="css/contacts.css">
     <style>
-        nav a.contacts {
-            color: #000;
-        }
-        nav a.logged-user {
-            color: #000;
-        }
-        nav a.add-contact,
-        nav a.logout {
-            color: #3498db;
-        }
 
         form {
             display: flex;
@@ -69,22 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <header>
-        <?php
-        if (isset($_SESSION['user_id'])) {
-            echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
-            echo '<div>';
-            echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
-            echo '<a href="contacts.php" class="contacts">Contacts</a>';
-            echo '<a href="logout.php" class="logout">Logout</a>';
-            echo '</div>';
-            echo '</nav>';
-        } else {
-            echo 'NOT LOGGED IN';
-        }
-        ?>
-    </header>
+    <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
     <div class="container">
         <h2>Edit Contact</h2>
