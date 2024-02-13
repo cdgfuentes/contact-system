@@ -48,31 +48,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration</title>
-    <link rel="stylesheet" href="css/auth.css">
+    <title>Create account · Contact System</title>
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
-    <form action="register.php" method="post">
-        <h2>User Registration</h2>
+<body class="auth">
+    <form action="register.php" method="post" class="card">
+        <h2>Create account</h2>
 
         <?php foreach ($errors as $error): ?>
-            <p class="error"><?= e($error) ?></p>
+            <p class="alert error"><?= e($error) ?></p>
         <?php endforeach; ?>
 
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" maxlength="50" value="<?= e($username) ?>" required>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" maxlength="50" value="<?= e($username) ?>" autocomplete="username" required>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" maxlength="100" value="<?= e($email) ?>" required>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" maxlength="100" value="<?= e($email) ?>" autocomplete="email" required>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" minlength="8" required>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required>
 
-        <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" id="confirmPassword" name="confirm_password" minlength="8" required>
+        <label for="confirmPassword">Confirm password</label>
+        <input type="password" id="confirmPassword" name="confirm_password" minlength="8" autocomplete="new-password" required>
 
-        <input type="submit" value="Register">
-        <a class="register-button" href="login.php">Back to login</a>
+        <input type="submit" value="Create account">
+        <p class="switch">Already registered? <a href="login.php">Log in</a></p>
     </form>
 
     <script>

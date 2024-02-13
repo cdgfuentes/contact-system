@@ -14,36 +14,48 @@ $contacts = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacts</title>
-    <link rel="stylesheet" href="css/contacts.css">
+    <title>Contacts · Contact System</title>
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
     <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
-    <div class="container">
-        <h2>Manage Contacts</h2>
-        <input type="text" id="searchInput" placeholder="Search contacts">   
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Company</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($contacts as $contact) {
-                    require __DIR__ . '/partials/contact_row.php';
-                } ?>
-            </tbody>
-        </table>
-    </div>
+    <main class="container">
+        <div class="card">
+            <div class="page-head">
+                <h2>Contacts</h2>
+                <input type="search" id="searchInput" placeholder="Search contacts" autocomplete="off">
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($contacts as $contact) {
+                            require __DIR__ . '/partials/contact_row.php';
+                        } ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
     <div class="confirmation-popup" id="deleteConfirmation">
-        <p>Are you sure you want to delete this contact?</p>
-        <button id="confirmDelete">Delete</button>
-        <button id="cancelDelete">Cancel</button>
+        <div class="card">
+            <p>Are you sure you want to delete this contact?</p>
+            <div class="form-actions">
+                <button id="confirmDelete" class="danger">Delete</button>
+                <button id="cancelDelete" class="secondary">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -55,13 +67,13 @@ $contacts = $stmt->fetchAll();
             link.addEventListener("click", function (event) {
                 event.preventDefault();
                 var contactId = this.getAttribute("data-contact-id");
-                document.getElementById("deleteConfirmation").style.display = "block";
+                document.getElementById("deleteConfirmation").classList.add("open");
                 document.getElementById("confirmDelete").addEventListener("click", function () {                    
                     window.location.href = "delete_contact.php?id=" + contactId;
                 });
 
                 document.getElementById("cancelDelete").addEventListener("click", function () {                    
-                    document.getElementById("deleteConfirmation").style.display = "none";
+                    document.getElementById("deleteConfirmation").classList.remove("open");
                 });
             });
         });
