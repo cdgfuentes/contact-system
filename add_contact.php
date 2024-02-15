@@ -5,6 +5,8 @@ $userId = require_login();
 $username = current_username($userId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $stmt = db()->prepare('INSERT INTO contacts (user_id, name, company, phone_number, email) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([$userId, $_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email']]);
 
@@ -25,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <main class="container">
         <form action="add_contact.php" method="post" class="card narrow">
+            <?= csrf_field() ?>
             <h2>Add contact</h2>
 
             <label for="name">Name</label>

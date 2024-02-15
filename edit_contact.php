@@ -20,6 +20,8 @@ $phone = $contact['phone_number'];
 $email = $contact['email'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
     $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId, $userId]);
 
@@ -40,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <main class="container">
         <form action="edit_contact.php?id=<?= $contactId ?>" method="post" class="card narrow">
+            <?= csrf_field() ?>
             <h2>Edit contact</h2>
 
             <label for="name">Name</label>

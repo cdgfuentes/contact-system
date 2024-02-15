@@ -5,6 +5,8 @@ $error = '';
 $email = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $email = trim($_POST['email'] ?? '');
 
     $stmt = db()->prepare('SELECT * FROM users WHERE email = ?');
@@ -30,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="auth">
     <form action="login.php" method="post" class="card">
+        <?= csrf_field() ?>
         <h2>Log in</h2>
 
         <?php if ($error): ?>

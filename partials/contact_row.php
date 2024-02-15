@@ -6,6 +6,6 @@
     <td><?= e($contact['email']) ?></td>
     <td>
         <a href="edit_contact.php?id=<?= (int) $contact['contact_id'] ?>" class="edit-action">Edit</a>
-        <a href="delete_contact.php?id=<?= (int) $contact['contact_id'] ?>" class="delete-action">Delete</a>
+        <a href="#" class="delete-action" data-id="<?= (int) $contact['contact_id'] ?>">Delete</a>
     </td>
 </tr>

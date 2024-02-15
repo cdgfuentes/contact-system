@@ -49,49 +49,49 @@ $contacts = $stmt->fetchAll();
     </main>
 
     <div class="confirmation-popup" id="deleteConfirmation">
-        <div class="card">
+        <form action="delete_contact.php" method="post" class="card">
+            <?= csrf_field() ?>
+            <input type="hidden" name="id" id="deleteId">
             <p>Are you sure you want to delete this contact?</p>
             <div class="form-actions">
-                <button id="confirmDelete" class="danger">Delete</button>
-                <button id="cancelDelete" class="secondary">Cancel</button>
+                <button type="submit" class="danger">Delete</button>
+                <button type="button" id="cancelDelete" class="secondary">Cancel</button>
             </div>
-        </div>
+        </form>
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var deleteLinks = document.getElementsByClassName("delete-action");
-        var contactIds = <?php echo json_encode(array_column($contacts, 'contact_id')); ?>;
+        document.addEventListener("DOMContentLoaded", function () {
+            var popup = document.getElementById("deleteConfirmation");
+            var tbody = document.querySelector("tbody");
 
-        Array.from(deleteLinks).forEach(function (link) {
-            link.addEventListener("click", function (event) {
+            // event delegation so rows coming back from search still work
+            tbody.addEventListener("click", function (event) {
+                var link = event.target.closest(".delete-action");
+                if (!link) return;
+
                 event.preventDefault();
-                var contactId = this.getAttribute("data-contact-id");
-                document.getElementById("deleteConfirmation").classList.add("open");
-                document.getElementById("confirmDelete").addEventListener("click", function () {                    
-                    window.location.href = "delete_contact.php?id=" + contactId;
-                });
+                document.getElementById("deleteId").value = link.dataset.id;
+                popup.classList.add("open");
+            });
 
-                document.getElementById("cancelDelete").addEventListener("click", function () {                    
-                    document.getElementById("deleteConfirmation").classList.remove("open");
-                });
+            document.getElementById("cancelDelete").addEventListener("click", function () {
+                popup.classList.remove("open");
+            });
+
+            // Search bar
+            var searchInput = document.getElementById("searchInput");
+            searchInput.addEventListener("input", function () {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        tbody.innerHTML = xhr.responseText;
+                    }
+                };
+                xhr.open("GET", "search_contacts.php?term=" + encodeURIComponent(searchInput.value.toLowerCase()), true);
+                xhr.send();
             });
         });
-
-        // Search bar
-        var searchInput = document.getElementById("searchInput");        
-        searchInput.addEventListener("input", function () {
-            var searchTerm = searchInput.value.toLowerCase();
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.querySelector("tbody").innerHTML = xhr.responseText;
-                }
-            };
-            xhr.open("GET", "search_contacts.php?term=" + searchTerm, true);
-            xhr.send();
-        });
-    });
-</script>
+    </script>
 </body>
 </html>

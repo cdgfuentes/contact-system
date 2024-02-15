@@ -6,6 +6,8 @@ $username = '';
 $email = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $username = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -53,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="auth">
     <form action="register.php" method="post" class="card">
+        <?= csrf_field() ?>
         <h2>Create account</h2>
 
         <?php foreach ($errors as $error): ?>
