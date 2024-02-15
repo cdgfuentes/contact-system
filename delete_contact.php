@@ -9,6 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt = db()->prepare('DELETE FROM contacts WHERE user_id = ? AND contact_id = ?');
     $stmt->execute([$userId, (int) ($_POST['id'] ?? 0)]);
+
+    if ($stmt->rowCount()) {
+        flash('Contact deleted.');
+    }
 }
 
 redirect('contacts.php');

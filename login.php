@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $error = '';
 $email = '';
+$flash = take_flash();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -34,6 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form action="login.php" method="post" class="card">
         <?= csrf_field() ?>
         <h2>Log in</h2>
+
+        <?php if ($flash): ?>
+            <p class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></p>
+        <?php endif; ?>
 
         <?php if ($error): ?>
             <p class="alert error"><?= e($error) ?></p>

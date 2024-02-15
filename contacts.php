@@ -7,6 +7,7 @@ $username = current_username($userId);
 $stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ?');
 $stmt->execute([$userId]);
 $contacts = $stmt->fetchAll();
+$flash = take_flash();
 ?>
 
 <!DOCTYPE html>
@@ -21,6 +22,10 @@ $contacts = $stmt->fetchAll();
     <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
     <main class="container">
+        <?php if ($flash): ?>
+            <p class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></p>
+        <?php endif; ?>
+
         <div class="card">
             <div class="page-head">
                 <h2>Contacts</h2>

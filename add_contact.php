@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = db()->prepare('INSERT INTO contacts (user_id, name, company, phone_number, email) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([$userId, $_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email']]);
 
+    flash('Contact added.');
     redirect('contacts.php');
 }
 ?>

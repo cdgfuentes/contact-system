@@ -43,6 +43,22 @@ function verify_csrf(): void
     }
 }
 
+/**
+ * One-time message shown on the next page load (after a redirect).
+ */
+function flash(string $message, string $type = 'success'): void
+{
+    $_SESSION['flash'] = ['message' => $message, 'type' => $type];
+}
+
+function take_flash(): ?array
+{
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+
+    return $flash;
+}
+
 function require_login(): int
 {
     if (!isset($_SESSION['user_id'])) {
