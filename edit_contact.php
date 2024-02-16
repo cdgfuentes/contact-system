@@ -20,9 +20,12 @@ $phone = $contact['phone_number'];
 $email = $contact['email'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
     $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId, $userId]);
 
+    flash('Contact updated.');
     redirect('contacts.php');
 }
 ?>
@@ -32,77 +35,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Contact</title>
-    <link rel="stylesheet" href="css/contacts.css">
-    <style>
-        nav a.contacts {
-            color: #000;
-        }
-        nav a.logged-user {
-            color: #000;
-        }
-        nav a.add-contact,
-        nav a.logout {
-            color: #3498db;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 8px;
-        }
-        input {
-            margin-bottom: 16px;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #3498db;
-            color: #fff;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <title>Edit contact · Contact System</title>
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <header>
-        <?php
-        if (isset($_SESSION['user_id'])) {
-            echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
-            echo '<div>';
-            echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
-            echo '<a href="contacts.php" class="contacts">Contacts</a>';
-            echo '<a href="logout.php" class="logout">Logout</a>';
-            echo '</div>';
-            echo '</nav>';
-        } else {
-            echo 'NOT LOGGED IN';
-        }
-        ?>
-    </header>
+    <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
-    <div class="container">
-        <h2>Edit Contact</h2>
-        <form action="<?php echo 'edit_contact.php?id=' . $contactId; ?>" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo e($name); ?>" required>
+    <main class="container">
+        <form action="edit_contact.php?id=<?= $contactId ?>" method="post" class="card narrow">
+            <?= csrf_field() ?>
+            <h2>Edit contact</h2>
 
-            <label for="company">Company:</label>
-            <input type="text" id="company" name="company" value="<?php echo e($company); ?>" required>
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" maxlength="100" value="<?= e($name) ?>" required>
 
-            <label for="phone">Phone:</label>
-            <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" required>
+            <label for="company">Company</label>
+            <input type="text" id="company" name="company" maxlength="32" value="<?= e($company) ?>" required>
 
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo e($email); ?>" required>
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" maxlength="20" value="<?= e($phone) ?>" required>
 
-            <button type="submit">Submit</button>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" maxlength="100" value="<?= e($email) ?>" required>
+
+            <div class="form-actions">
+                <button type="submit">Save</button>
+                <a href="contacts.php" class="btn secondary">Cancel</a>
+            </div>
         </form>
-    </div>
+    </main>
 </body>
 </html>

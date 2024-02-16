@@ -7,6 +7,7 @@ $username = current_username($userId);
 $stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ?');
 $stmt->execute([$userId]);
 $contacts = $stmt->fetchAll();
+$flash = take_flash();
 ?>
 
 <!DOCTYPE html>
@@ -14,108 +15,88 @@ $contacts = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacts</title>
-    <link rel="stylesheet" href="css/contacts.css">
-    <style>
-        nav a.contacts {
-            color: #000;
-        }
-        nav a.logged-user {
-            color: #000;
-        }
-        nav a.add-contact,
-        nav a.logout {
-            color: #3498db;
-        }
-    </style>
+    <title>Contacts · Contact System</title>
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <header>
-        <?php
-        if (isset($_SESSION['user_id'])) {
-            echo '<nav>';
-            echo '<a class="logged-user">Hello, ' . e($username) . '!</a>';
-            echo '<div>';
-            echo '<a href="add_contact.php" class="add-contact">Add Contact</a>';
-            echo '<a href="contacts.php" class="contacts">Contacts</a>';
-            echo '<a href="logout.php" class="logout">Logout</a>';
-            echo '</div>';
-            echo '</nav>';
-        }
-        ?>
-    </header>
+    <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
-    <div class="container">
-        <h2>Manage Contacts</h2>
-        <input type="text" id="searchInput" placeholder="Search contacts">   
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Company</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                foreach ($contacts as $contact) {
-                    echo '<tr class="action-row">';
-                    echo '<td>' . e($contact['name']) . '</td>';
-                    echo '<td>' . e($contact['company']) . '</td>';
-                    echo '<td>' . e($contact['phone_number']) . '</td>';
-                    echo '<td>' . e($contact['email']) . '</td>';
-                    echo '<td>';
-                    echo '<a href="edit_contact.php?id=' . (int) $contact['contact_id'] . '" class="edit-action">Edit</a>';
-                    echo '<a href="delete_contact.php?id=' . (int) $contact['contact_id'] . '" class="delete-action">Delete</a>';
-                    echo '</td>';
-                    echo '</tr>';
-                }
-                ?>
-            </tbody>
-        </table>
-    </div>
+    <main class="container">
+        <?php if ($flash): ?>
+            <p class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></p>
+        <?php endif; ?>
+
+        <div class="card">
+            <div class="page-head">
+                <h2>Contacts</h2>
+                <input type="search" id="searchInput" placeholder="Search contacts" autocomplete="off">
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($contacts as $contact) {
+                            require __DIR__ . '/partials/contact_row.php';
+                        } ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
     <div class="confirmation-popup" id="deleteConfirmation">
-        <p>Are you sure you want to delete this contact?</p>
-        <button id="confirmDelete">Delete</button>
-        <button id="cancelDelete">Cancel</button>
+        <form action="delete_contact.php" method="post" class="card">
+            <?= csrf_field() ?>
+            <input type="hidden" name="id" id="deleteId">
+            <p>Are you sure you want to delete this contact?</p>
+            <div class="form-actions">
+                <button type="submit" class="danger">Delete</button>
+                <button type="button" id="cancelDelete" class="secondary">Cancel</button>
+            </div>
+        </form>
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var deleteLinks = document.getElementsByClassName("delete-action");
-        var contactIds = <?php echo json_encode(array_column($contacts, 'contact_id')); ?>;
+        document.addEventListener("DOMContentLoaded", function () {
+            var popup = document.getElementById("deleteConfirmation");
+            var tbody = document.querySelector("tbody");
 
-        Array.from(deleteLinks).forEach(function (link) {
-            link.addEventListener("click", function (event) {
+            // event delegation so rows coming back from search still work
+            tbody.addEventListener("click", function (event) {
+                var link = event.target.closest(".delete-action");
+                if (!link) return;
+
                 event.preventDefault();
-                var contactId = this.getAttribute("data-contact-id");
-                document.getElementById("deleteConfirmation").style.display = "block";
-                document.getElementById("confirmDelete").addEventListener("click", function () {                    
-                    window.location.href = "delete_contact.php?id=" + contactId;
-                });
+                document.getElementById("deleteId").value = link.dataset.id;
+                popup.classList.add("open");
+            });
 
-                document.getElementById("cancelDelete").addEventListener("click", function () {                    
-                    document.getElementById("deleteConfirmation").style.display = "none";
-                });
+            document.getElementById("cancelDelete").addEventListener("click", function () {
+                popup.classList.remove("open");
+            });
+
+            // Search bar
+            var searchInput = document.getElementById("searchInput");
+            searchInput.addEventListener("input", function () {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        tbody.innerHTML = xhr.responseText;
+                    }
+                };
+                xhr.open("GET", "search_contacts.php?term=" + encodeURIComponent(searchInput.value.toLowerCase()), true);
+                xhr.send();
             });
         });
-
-        // Search bar
-        var searchInput = document.getElementById("searchInput");        
-        searchInput.addEventListener("input", function () {
-            var searchTerm = searchInput.value.toLowerCase();
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.querySelector("tbody").innerHTML = xhr.responseText;
-                }
-            };
-            xhr.open("GET", "search_contacts.php?term=" + searchTerm, true);
-            xhr.send();
-        });
-    });
-</script>
+    </script>
 </body>
 </html>
