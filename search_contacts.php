@@ -3,12 +3,18 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $userId = require_login();
 
-// Fetch contacts associated with the logged-in user based on search term
-$like = '%' . ($_GET['term'] ?? '') . '%';
-$stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ? AND (LOWER(name) LIKE ? OR LOWER(company) LIKE ? OR LOWER(phone_number) LIKE ? OR LOWER(email) LIKE ?)');
+// escape LIKE wildcards so searching "50%" or "a_b" matches literally
+$term = mb_strtolower(trim($_GET['term'] ?? ''));
+$like = '%' . addcslashes($term, '%_\\') . '%';
+
+$stmt = db()->prepare(
+    'SELECT * FROM contacts
+     WHERE user_id = ?
+       AND (LOWER(name) LIKE ? OR LOWER(company) LIKE ? OR LOWER(phone_number) LIKE ? OR LOWER(email) LIKE ?)
+     ORDER BY name'
+);
 $stmt->execute([$userId, $like, $like, $like, $like]);
 $contacts = $stmt->fetchAll();
 
-foreach ($contacts as $contact) {
-    require __DIR__ . '/partials/contact_row.php';
-}
+$emptyText = 'No contacts match "' . $term . '".';
+require __DIR__ . '/partials/contact_rows.php';
