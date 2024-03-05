@@ -1,5 +1,10 @@
 <?php
 
+session_set_cookie_params([
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'secure' => ($_SERVER['HTTPS'] ?? '') === 'on',
+]);
 session_start();
 
 require_once __DIR__ . '/db.php';
@@ -57,6 +62,25 @@ function take_flash(): ?array
     unset($_SESSION['flash']);
 
     return $flash;
+}
+
+/**
+ * Log the user in with a fresh session id (prevents session fixation).
+ */
+function login_user(int $userId): void
+{
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $userId;
+}
+
+/**
+ * Auth pages (login/register) make no sense when already logged in.
+ */
+function redirect_if_logged_in(): void
+{
+    if (isset($_SESSION['user_id'])) {
+        redirect('contacts.php');
+    }
 }
 
 function require_login(): int

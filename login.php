@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
+redirect_if_logged_in();
+
 $error = '';
 $email = '';
 $flash = take_flash();
@@ -15,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($_POST['password'] ?? '', $user['password'])) {
-        $_SESSION['user_id'] = $user['user_id'];
+        login_user((int) $user['user_id']);
         redirect('contacts.php');
     } else {
         $error = 'Invalid email or password.';
