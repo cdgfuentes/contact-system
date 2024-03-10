@@ -1,0 +1,33 @@
+# local dev: docker compose up -> http://localhost:8080
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: contact_system
+      DB_USER: contact
+      DB_PASS: ${DB_PASS:-secret}
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS:-root}
+      MARIADB_DATABASE: contact_system
+      MARIADB_USER: contact
+      MARIADB_PASSWORD: ${DB_PASS:-secret}
+    volumes:
+      - db-data:/var/lib/mysql
+      # runs once, on the first start with an empty volume
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    ports:
+      - "3307:3306"
+
+volumes:
+  db-data:

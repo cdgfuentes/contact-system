@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
+redirect_if_logged_in();
+
 $errors = [];
 $username = '';
 $email = '';
@@ -38,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $stmt = db()->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
         $stmt->execute([$username, $email, password_hash($password, PASSWORD_BCRYPT)]);
-        $_SESSION['user_id'] = (int) db()->lastInsertId();
+        login_user((int) db()->lastInsertId());
 
         redirect('thank_you.php');
     }

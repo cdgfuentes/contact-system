@@ -1,0 +1,6 @@
+.git
+.env
+config.local.php
+database
+Dockerfile
+docker-compose.yml

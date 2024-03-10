@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $userId = require_login();
 $username = current_username($userId);
 
-$stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ?');
+$stmt = db()->prepare('SELECT * FROM contacts WHERE user_id = ? ORDER BY name');
 $stmt->execute([$userId]);
 $contacts = $stmt->fetchAll();
 $flash = take_flash();
@@ -28,7 +28,7 @@ $flash = take_flash();
 
         <div class="card">
             <div class="page-head">
-                <h2>Contacts</h2>
+                <h2>Contacts <span class="count"><?= count($contacts) ?></span></h2>
                 <input type="search" id="searchInput" placeholder="Search contacts" autocomplete="off">
             </div>
 
@@ -44,9 +44,10 @@ $flash = take_flash();
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($contacts as $contact) {
-                            require __DIR__ . '/partials/contact_row.php';
-                        } ?>
+                        <?php
+                        $emptyText = 'No contacts yet. Add your first one!';
+                        require __DIR__ . '/partials/contact_rows.php';
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -84,17 +85,21 @@ $flash = take_flash();
                 popup.classList.remove("open");
             });
 
-            // Search bar
+            // Search bar: wait until typing stops, ignore answers to older searches
             var searchInput = document.getElementById("searchInput");
+            var timer = null;
+            var latest = 0;
+
             searchInput.addEventListener("input", function () {
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        tbody.innerHTML = xhr.responseText;
-                    }
-                };
-                xhr.open("GET", "search_contacts.php?term=" + encodeURIComponent(searchInput.value.toLowerCase()), true);
-                xhr.send();
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    var id = ++latest;
+                    fetch("search_contacts.php?term=" + encodeURIComponent(searchInput.value))
+                        .then(function (res) { return res.text(); })
+                        .then(function (html) {
+                            if (id === latest) tbody.innerHTML = html;
+                        });
+                }, 250);
             });
         });
     </script>
