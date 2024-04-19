@@ -337,6 +337,51 @@ tbody tr:hover {
   color: var(--muted);
 }
 
+/* phones: every row becomes a small card */
+@media (max-width: 640px) {
+  thead {
+    display: none;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+  }
+
+  tbody tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3rem 0;
+    border: none;
+  }
+
+  td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .action-row td:last-child {
+    justify-content: flex-end;
+  }
+
+  td.empty {
+    justify-content: center;
+  }
+
+  #searchInput {
+    max-width: none;
+  }
+}
+
 /* ---------- delete confirmation ---------- */
 
 .confirmation-popup {
