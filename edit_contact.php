@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/contacts.php';
 
 $userId = require_login();
 $username = current_username($userId);
@@ -14,19 +15,25 @@ if (!$contact) {
     redirect('contacts.php');
 }
 
-$name = $contact['name'];
-$company = $contact['company'];
-$phone = $contact['phone_number'];
-$email = $contact['email'];
+$values = [
+    'name' => $contact['name'],
+    'company' => $contact['company'],
+    'phone' => $contact['phone_number'],
+    'email' => $contact['email'],
+];
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
+    [$values, $errors] = validate_contact($_POST);
 
-    $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
-    $stmt->execute([$_POST['name'], $_POST['company'], $_POST['phone'], $_POST['email'], $contactId, $userId]);
+    if (!$errors) {
+        $stmt = db()->prepare('UPDATE contacts SET name = ?, company = ?, phone_number = ?, email = ? WHERE contact_id = ? AND user_id = ?');
+        $stmt->execute([$values['name'], $values['company'], $values['phone'], $values['email'], $contactId, $userId]);
 
-    flash('Contact updated.');
-    redirect('contacts.php');
+        flash('Contact updated.');
+        redirect('contacts.php');
+    }
 }
 ?>
 
@@ -42,27 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php $active = 'contacts'; require __DIR__ . '/partials/nav.php'; ?>
 
     <main class="container">
-        <form action="edit_contact.php?id=<?= $contactId ?>" method="post" class="card narrow">
-            <?= csrf_field() ?>
-            <h2>Edit contact</h2>
-
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" maxlength="100" value="<?= e($name) ?>" required>
-
-            <label for="company">Company</label>
-            <input type="text" id="company" name="company" maxlength="32" value="<?= e($company) ?>" required>
-
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone" maxlength="20" value="<?= e($phone) ?>" required>
-
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" maxlength="100" value="<?= e($email) ?>" required>
-
-            <div class="form-actions">
-                <button type="submit">Save</button>
-                <a href="contacts.php" class="btn secondary">Cancel</a>
-            </div>
-        </form>
+        <?php
+        $title = 'Edit contact';
+        $action = 'edit_contact.php?id=' . $contactId;
+        require __DIR__ . '/partials/contact_form.php';
+        ?>
     </main>
 </body>
 </html>
